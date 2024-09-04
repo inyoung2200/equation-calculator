@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./img/calculator-solid.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Edu+VIC+WA+NT+Beginner:wght@400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Edu+VIC+WA+NT+Beginner:wght@400..700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="./css/calculator.css">
+    <title>계산기</title>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <h1>Calculator</h1>
+            <div class="buttonArea">
+                <button id="openCalculator" class="openCalculator">Open a new calculator!</button>
+            </div>
+        </header>
+        <section id="main">
+            <section id="calculatorArea"></section>
+        </section>
+    </div>
+    <script>
+        class Calculator {
+            constructor( id ) {
+                this.id = id;
+                this.displayString = '';
+                this.rangeV = '';
+                this.html = `
+                <div class="calculatorWrap">
+                    <div class="calHeader">
+                        <button id="${this.id}Close" class="close" data-value="${this.id}Close"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="resultArea">
+                        <div id="${this.id}Decimal">
+                            <input type="range" id="${this.id}Range" class="rangeInput" max="4" value="2">
+                            <div class="rangeText">
+                                <span>F</span><span>4</span><span>3</span><span>2</span><span>0</span>
+                            </div>
+                        </div>
+                        <div id="${this.id}" class="resultInput" readonly>0</div>
+                    </div>
+                    <div class="buttonArea">
+                        <button data-value="C" style="font-size: 15px;">C</button>
+                        <button data-value="(" data-type="number" style="font-size: 15px;">(</button>
+                        <button data-value=")" data-type="number" style="font-size: 15px;">)</button>
+                        <button data-value=">"><i class="fa-solid fa-play"></i></button>    
+                        <button data-value="7" data-type="number">7</button>
+                        <button data-value="8" data-type="number">8</button>
+                        <button data-value="9" data-type="number">9</button>
+                        <button data-value="/" data-type="number"><i class="fa-solid fa-divide"></i></button>    
+                        <button data-value="4" data-type="number">4</button>
+                        <button data-value="5" data-type="number">5</button>
+                        <button data-value="6" data-type="number">6</button>
+                        <button data-value="*" data-type="number"><i class="fa-solid fa-xmark"></i></button>    
+                        <button data-value="1" data-type="number">1</button>
+                        <button data-value="2" data-type="number">2</button>
+                        <button data-value="3" data-type="number">3</button>
+                        <button data-value="-" data-type="number"><i class="fa-solid fa-minus"></i></button>    
+                        <button data-value="0" data-type="number">0</button>
+                        <button data-value="." data-type="number">.</button>
+                        <button data-value="="><i class="fa-solid fa-equals"></i></button> 
+                        <button data-value="+" data-type="number"><i class="fa-solid fa-plus"></i></button>  
+                    </div>
+                </div>
+                `;
+                this.css = `
+                <style>
+                    #calculatorArea${this.id} {
+                    width: 100%; display: flex; justify-content: center; align-items: center;
+                    gap: 40px; flex-wrap: wrap;
+                    }
+                    .calculatorWrap { 
+                        width: 234px; height: 440px;
+                        border-radius: 20px; background-color: #E0E8F3;
+                        box-shadow: rgba(0, 0, 0, 0.2) 7px 7px 8px -2px, rgba(255, 255, 255, 0.8) -4px -4px 13px 0px;
+                    }
+                    .calHeader {padding: 10px;}
+                    .calHeader .close {
+                        width: 25px; height: 25px;
+                        background-color: #DE4364; border-radius: 50%;
+                        box-shadow: rgba(0, 0, 0, 0.2) 5px 5px 5px -2px;
+                    }
+                    .calHeader .close:hover { background-color: #bb3955;}
+                    .calHeader .close i {color: #ffffff;}
+                    .resultArea { 
+                        width: 100%; height: calc(100% - 304px);
+                        font-size: 25px; line-height: 40px;
+                        border-radius: 10px; position: relative;
+                        display: flex; align-items: end; flex-direction: column;
+                    }
+                    .resultInput {
+                        width: 174px; margin: 0 30px 30px; text-align: right;
+                        background-color: transparent; border: none; outline: none;
+                        font-size: 30px; color: #474F5A; font-weight: bold;
+                        position: absolute; bottom: 0; right: 0;
+                        overflow: hidden;
+                    }
+                    .rangeText {margin-top: -28px;}
+                    .rangeText span {font-size: 12px; padding-right: 11px;}
+                    .buttonArea {
+                        display: flex; align-items: center; justify-content: center;
+                        flex-wrap: wrap; gap: 12px;
+                    }
+                    button {
+                        width: 38px; height: 38px; cursor: pointer;
+                        background-color: #E0E8F3; border: none; border-radius: 8px;
+                        box-shadow: rgba(0, 0, 0, 0.2) 5px 5px 5px -2px, rgba(255, 255, 255, 0.8) -3px -3px 7px 0px;
+                        font-family: "Noto Sans KR", sans-serif; font-weight: bold; color: #474F5A; font-size: 13px;
+                    }
+                    button:hover { background-color: #cbd4df;}
+                    button:active {background-color: #cbd4df;}
+                    .fa-solid {color: #DE4364; pointer-events: none;}
+                    .fa-solid.fa-play {color: #474F5A; font-size: 11px;}
+                </styl>
+                `;
+            }
+            initCal( targetDom ) {
+                targetDom.innerHTML = this.html;
+                targetDom.innerHTML += this.css;
+            }
+            removeCal(targetDom){
+                targetDom.addEventListener(
+                    'click',
+                    (e)=>{
+                        let event = e ? e : event;
+                        if(event.target.dataset.value === `${this.id}Close`){
+                            targetDom.style.display = 'none';  // 화면에서 지우기
+                        }
+                    }
+                )
+            }
+            displayData() {
+                document.getElementById(this.id).innerHTML = this.displayString.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',');
+                //console.log(this.id.innerHTML)
+            }
+            inputRangeData(){
+                let rangeV = document.getElementById(`${this.id}Range`).value;
+                this.rangeV = rangeV;
+                document.getElementById(`${this.id}Range`).addEventListener(
+                    'input',
+                    (e)=>{
+                        let event = e ? e : event;
+                        rangeV = document.getElementById(`${this.id}Range`).value;
+                        this.rangeV = rangeV;
+                        //console.log(this.rangeV)
+                    }
+                )
+                if(this.rangeV === '0'){
+                    this.displayString = Number(this.displayString)
+                } else if(this.rangeV === '1') {
+                    this.displayString = Number(this.displayString).toFixed(4);
+                } else if(this.rangeV === '2') {
+                    this.displayString = Number(this.displayString).toFixed(3);
+                } else if(this.rangeV === '3'){
+                    this.displayString = Number(this.displayString).toFixed(2);
+                } else {
+                    this.displayString = Number(this.displayString).toFixed(0);
+                }
+            }
+            inputData(targetDom) {
+                class Deck {
+                    constructor( id ) {
+                        this.id = id;
+                        this.storage = [];
+                    }
+                    push(item){
+                        this.storage.push(item);
+                    }
+                    pop(){
+                        return this.storage.pop();
+                    }
+                    shift(){
+                        return this.storage.shift();
+                    }
+                }
+                const deckCal = new Deck('deckCal');
+                targetDom.addEventListener(
+                    'click', 
+                    (e)=>{
+                        let event = e ? e : event;  // 브라우저마다 e를 못알아보는 경우가 있어서 그럴경우 event로 알아보라는 코드
+                        if( event.target.dataset.value != null ) {
+                            if(event.target.dataset.type === 'number'){
+                                this.displayString += event.target.dataset.value;
+                                //console.log(this.displayString)
+                                this.displayData();
+                            }
+                            switch(event.target.dataset.value){
+                                case '=':
+                                    // try()catch(){} >>> 에러상황 상황지정
+                                    try{
+                                        this.displayString = eval(this.displayString);
+                                        this.inputRangeData();
+                                        this.displayData();
+                                        deckCal.storage = [];
+                                        deckCal.push(this.displayString);
+                                        //console.log(deckCal.storage);
+                                    }catch(err){
+                                        this.displayString = 'Error!';
+                                        this.displayData();
+                                        this.displayString = '';
+                                        deckCal.storage = [];
+                                    }
+                                    break;
+                                case 'C':
+                                    this.displayString = '';
+                                    deckCal.storage = [];
+                                    this.displayData();
+                                    break;
+                                case '>':
+                                    if(deckCal.storage.length <= 1){
+                                        this.displayString = '0';
+                                        deckCal.storage = [];
+                                        this.displayData();
+                                    } else {
+                                        deckCal.pop();
+                                        //console.log(deckCal.storage);
+                                        let tempString = '';
+                                        for(let i=0; i<=deckCal.storage.length; i++){
+                                            tempString += deckCal.shift();
+                                            //console.log(tempString);
+                                        }
+                                        this.displayString = tempString;
+                                        this.displayData();
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                )
+            }
+            control( targetDom ) {
+                this.initCal(targetDom);
+                this.inputData(targetDom);
+                this.removeCal(targetDom);
+            }
+        }
+
+
+
+        
+        
+
+        
+        // canvas
+        class EquaGraph {
+            constructor(id){
+                this.id = id;
+                this.canvas = null;
+                this.pen = null;
+                this.canvasWidth = 0;
+                this.canvasHeight = 0;
+                this.scaleFactorX = 10;
+                this.scaleFactorY = 10;
+                this.moveY = 0;
+                this.moveX = 0;
+                this.html = `
+                <div class="equaGraphWrap">
+                    <div class="equationhWrap">
+                        <div style="display: flex; align-items: center;">
+                            <span class="name"><span class="equation">y=ax+b</span></span>
+                            <sapn class="inputBox">
+                                <span>a</span><input id="${this.id}linearA">
+                                <span>b</span><input id="${this.id}linearB">
+                            </sapn>
+                            <button id="${this.id}btnLinear">PRINT</button>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-top: 20px;">
+                            <span class="name"><span class="equation">y=ax<sup>2</sup>+bx+c</span></span>
+                            <sapn class="inputBox">
+                                <span>a</span><input id="${this.id}quadraticA">
+                                <span>b</span><input id="${this.id}quadraticB">
+                                <span>c</span><input id="${this.id}quadraticC">
+                            </sapn>
+                            <button id="${this.id}btnQuadratic">PRINT</button>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-top: 20px;">
+                            <span class="name"><span class="equation">y=ax<sup>3</sup>+bx<sup>2</sup>+cx+d</span></span>
+                            <sapn class="inputBox">
+                                <span>a</span><input id="${this.id}cubicA">
+                                <span>b</span><input id="${this.id}cubicB">
+                                <span>c</span><input id="${this.id}cubicC">
+                                <span>d</span><input id="${this.id}cubicD">
+                            </sapn>
+                            <button id="${this.id}btnCubic">PRINT</button>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-top: 20px;">
+                            <span class="name"><span class="equation">r<sup>2</sup>=&#40;x-a&#41;<sup>2</sup>+&#40;y-b&#41;<sup>2</sup></span></span>
+                            <sapn class="inputBox">
+                                <span>r</span><input id="${this.id}circleR">
+                                <span>a</span><input id="${this.id}circleA">
+                                <span>b</span><input id="${this.id}circleB">
+                            </sapn>
+                            <button id="${this.id}btnCircle">PRINT</button>
+                        </div>
+                    </div>
+                    <div class="graphWrap">
+                        <div class="btnSizeWrap">
+                            <button id="${this.id}btnZoomIn" style="margin-right: 10px;"><i class="fa-solid fa-plus"></i></button>
+                            <button id="${this.id}btnZoomOut"><i class="fa-solid fa-minus"></i></button>
+                        </div>
+                        
+                        <canvas id="${this.id}canvas" width="300" height="300"></canvas>
+                        <div class="btnPositionWrap">
+                            <button id="${this.id}btnPositionTop"><i class="fa-solid fa-play" style="transform: rotate(30deg);"></i></button>
+                            <div>
+                                <button id="${this.id}btnPositionLeft"><i class="fa-solid fa-play" style="transform: rotate(180deg);"></i></button>
+                                <button id="${this.id}btnPositionRight" style="margin-left: 48px;"><i class="fa-solid fa-play" ></i></button>
+                            </div>
+                            <button id="${this.id}btnPositionBottom"><i class="fa-solid fa-play" style="transform: rotate(90deg);"></i></button>
+                        </div?>
+                    </div>
+                </div>
+                `;
+                this.css = `
+                            <style>
+                            #equaGraphArea${this.id} {width: 65%}
+                            .equaGraphWrap {
+                                height: 525px; padding: 20px 30px;
+                                display: flex; align-items: center; justify-content: center; flex-direction: column;
+                                box-shadow: rgba(0, 0, 0, 0.2) 7px 7px 8px -2px, rgba(255, 255, 255, 0.8) -4px -4px 13px 0px;
+                            }
+                            .equationhWrap .name {
+                                font-weight: bold;
+                            }
+                            .equationhWrap .equation {
+                                font-weight: 600; font-family: "Edu VIC WA NT Beginner", cursive;
+                                font-size: 22px;
+                            }
+                            .equationhWrap .inputBox {margin-left: 20px;}
+                            .equationhWrap .inputBox span {font-weight: 500; margin-left: 10px;}
+                            .equationhWrap .inputBox input {
+                                width: 30px; height: 30px; padding: 0 10px;
+                                border: none; border-radius: 5px;
+                                margin-left: 5px;
+                            }
+                            .equationhWrap .inputBox input:focus-visible {
+                                outline: 2px solid #474F5A;
+                                outline-style: dashed;
+                            }
+                            .equationhWrap button {
+                                width: 80px; height: 30px; margin-left: 20px;
+                            }
+                            .graphWrap {
+                                margin-top: 38px; gap: 20px;
+                                display: flex; align-items: center; justify-content: center;
+                            }
+                            .btnSizeWrap {width: 130px; display: flex; justify-content: center;}
+                            .graphWrap canvas {
+                                background-color: #ffffff;
+                            }
+                            .graphWrap .fa-plus, .graphWrap .fa-minus {
+                                color: #474F5A;
+                            }
+                            .btnPositionWrap {
+                                width: 130px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                row-gap: 5px;
+                            }
+                                @media (max-width: 1040px){
+                                    header .buttonArea {flex-direction: column; }
+                                    .equaGraphWrap {height: 460px; padding: 20px;}
+                                    .equationhWrap .equation {font-size: 18px;}
+                                    .equationhWrap .inputBox {margin-left: 12px;}
+                                    .equationhWrap button {width: 70px; margin-left: 15px;}
+                                    canvas {width: 240px; height: 240px;}
+                                }
+                                @media (max-width: 1055px){
+                                    #equaGraphArea${this.id} {width: 100%}
+                                }
+                                @media (max-width: 640px) {
+                                    .equaGraphWrap {height: 420px;}
+                                    .equationhWrap .equation {font-size: 14px;}
+                                    .equationhWrap .inputBox span {margin-left: 5px;}
+                                    .equationhWrap .inputBox {font-size: 12px; margin-left: 8px;}
+                                    .equationhWrap button {width: 60px; font-size: 12px; margin-left: 10px;}
+                                    .graphWrap {gap: 15px;}
+                                    .graphWrap button {width: 30px; height: 30px; font-size: 10px;}
+                                    .btnSizeWrap, .btnPositionWrap {width: 113px;}
+                                    canvas {width: 200px; height: 200px;}
+                                }
+                                @media (max-width: 560px) {
+                                    .equationhWrap .equation {font-size: 12px;}
+                                    .equationhWrap .inputBox input {width: 24px; font-size: 11px;}
+                                    #graph1btnPositionRight {margin-left: 30px !important;}
+                                    .equationhWrap button {width: 53px; font-size: 11px;}
+                                    .graphWrap {gap: 10px;}
+                                    .btnSizeWrap, .btnPositionWrap {width: 96px;}
+                                }
+                                @media (max-width: 510px) {
+                                    .equaGraphWrap {height: 400px; padding: 20px 10px;}
+                                    .equationhWrap .inputBox input {width: 15px;}
+                                    canvas {width: 180px; height: 180px;}
+                                }
+                                @media (max-width: 480px) {
+                                    section#main {gap: 0px;}
+                                    #equaGraphArea${this.id} {width: unset; transform: scale(0.8);}
+                                }
+                                @media (max-width: 380px) {#equaGraphArea${this.id} {transform: scale(0.7);}}
+                                @media (max-width: 330px) {#equaGraphArea${this.id} {transform: scale(0.6);} h1 {font-size: 35px;}}
+                            </style>`
+                            ;
+            }
+            initCal( targetDom ) {
+                targetDom.innerHTML = this.html;
+                targetDom.innerHTML += this.css;
+                this.canvas = document.getElementById(`${this.id}canvas`);
+                this.pen = this.canvas.getContext('2d');
+                
+                this.canvasWidth = Number(this.canvas.getAttribute('width'));
+                this.canvasHeight = Number(this.canvas.getAttribute('height'));
+                //targetDom.innerHTML += this.css;
+            }
+            canvasClear(){
+                this.pen.clearRect(0,0,this.canvasWidth,this.canvasHeight)
+            }
+            printCross(){
+                for(let x=0; x<=this.canvasWidth; x++){
+                    this.pen.fillRect(x,(this.canvasHeight/2)+this.moveY,1,1);
+                }
+                for(let y=0; y<=this.canvasHeight; y++){//yH
+                    this.pen.fillRect((this.canvasWidth/2)+this.moveX, y,1,1);
+                }
+            }
+            printScaleFactor(){
+                let factorWidth = this.canvasWidth / this.scaleFactorX;
+                let factorHeight = this.canvasHeight / this.scaleFactorY;
+
+                for(let x=0; x<factorWidth; x++){
+                    for(let y=-3; y<4; y++){
+                        this.pen.fillRect((this.canvasWidth/2)+this.moveX + this.scaleFactorX*x, (this.canvasHeight/2)+this.moveY - y , 1, 1);
+                    }
+                    for(let y=-3; y<4; y++){
+                        this.pen.fillRect((this.canvasWidth/2)+this.moveX - this.scaleFactorX*x, (this.canvasHeight/2)+this.moveY + y , 1, 1);
+                    }
+                }
+                for(let y=0; y<factorHeight; y++){
+                    for(let x=-3; x<4; x++){
+                        this.pen.fillRect( (this.canvasWidth/2)+this.moveX + x, (this.canvasHeight/2)+this.moveY - this.scaleFactorY*y, 1, 1);
+                    }
+                    for(let x=-3; x<4; x++){
+                        this.pen.fillRect( (this.canvasWidth/2)+this.moveX - x, (this.canvasHeight/2)+this.moveY + this.scaleFactorY*y, 1, 1);
+                    }
+                }
+            }
+            canvasZoomInOut(){
+                document.getElementById(`${this.id}btnZoomIn`).addEventListener(
+                    'click',
+                    (e)=>{
+                        this.canvasClear();
+                        this.scaleFactorX = this.scaleFactorX + 10;
+                        this.scaleFactorY = this.scaleFactorY + 10;
+                        this.printCross();
+                        this.printScaleFactor();
+                        this.equationOperations()
+                    }
+                )
+                document.getElementById(`${this.id}btnZoomOut`).addEventListener(
+                    'click',
+                    (e)=>{
+                        if(this.scaleFactorX > 10 && this.scaleFactorY > 10){
+                            this.canvasClear();
+                            this.scaleFactorX = this.scaleFactorX - 10;
+                            this.scaleFactorY = this.scaleFactorY - 10;
+                            this.printCross();
+                            this.printScaleFactor();
+                            this.equationOperations()
+                        }
+                    }
+                )
+            }
+            canvasMove(){
+                document.getElementById(`${this.id}btnPositionTop`).addEventListener(
+                    'click',
+                    (e)=>{
+                        this.canvasClear();
+                        this.moveY += this.scaleFactorY;
+                        this.printCross();
+                        this.printScaleFactor()
+                        this.equationOperations()
+                    }
+                )
+                
+                document.getElementById(`${this.id}btnPositionBottom`).addEventListener(
+                    'click',
+                    (e)=>{
+                        this.canvasClear();
+                        this.moveY -= this.scaleFactorY;
+                        this.printCross();
+                        this.printScaleFactor();
+                        this.equationOperations()
+                    }
+                )
+                document.getElementById(`${this.id}btnPositionLeft`).addEventListener(
+                    'click',
+                    (e)=>{
+                        this.canvasClear();
+                        this.moveX += this.scaleFactorX;
+                        this.printCross();
+                        this.printScaleFactor();
+                        this.equationOperations();
+                    }
+                )
+                document.getElementById(`${this.id}btnPositionRight`).addEventListener(
+                    'click',
+                    (e)=>{
+                        this.canvasClear();
+                        this.moveX -= this.scaleFactorX;
+                        this.printCross();
+                        this.printScaleFactor();
+                        this.equationOperations();
+                        
+                    }
+                )
+            }
+            printDot(x,y){
+                this.pen.fillRect((x*this.scaleFactorX) + (this.canvasWidth/2)+this.moveX, (this.canvasHeight/2)+this.moveY - (y*this.scaleFactorY), 1, 1)
+            }
+            equationOperations(){
+                let factorMinX = (this.canvasWidth/2) * -1;
+                let factorMaxX = (this.canvasWidth/2);
+                let factorDotX = 1 / this.scaleFactorX;
+                
+                // y = ax + b;
+                const linearPrint = () => {
+                    const linearA = Number(eval(document.getElementById(`${this.id}linearA`).value));
+                    const linearB = Number(eval(document.getElementById(`${this.id}linearB`).value));
+
+                    for(let x=factorMinX; x<factorMaxX; x=x+factorDotX){      
+                        let y = (linearA * x) + linearB;       
+                        this.printDot(x,y);
+                    }
+                }
+                linearPrint();
+                document.getElementById(`${this.id}btnLinear`).addEventListener(
+                    'click',
+                    (e) => {
+                        linearPrint();
+                    }
+                )
+                
+                // y = ax**2 + bx + c;
+                const quadraticPrint = () => {
+                    const quadraticA = Number(eval(document.getElementById(`${this.id}quadraticA`).value));
+                    const quadraticB = Number(eval(document.getElementById(`${this.id}quadraticB`).value));
+                    const quadraticC = Number(eval(document.getElementById(`${this.id}quadraticC`).value));
+                    
+                    for(let x=factorMinX; x<factorMaxX; x=x+factorDotX){
+                        const y = (quadraticA * (x**2)) + (quadraticB * x) + quadraticC;
+                        this.printDot(x,y);     
+                    }
+                }
+                quadraticPrint();
+                document.getElementById(`${this.id}btnQuadratic`).addEventListener(
+                    'click',
+                    (e) => {
+                        quadraticPrint();
+                    }
+                )
+
+                // y = ax**3 + bx**2 + cx + d;
+                const cubicPrint = () => {
+                    const cubicA = Number(eval(document.getElementById(`${this.id}cubicA`).value));
+                    const cubicB = Number(eval(document.getElementById(`${this.id}cubicB`).value));
+                    const cubicC = Number(eval(document.getElementById(`${this.id}cubicC`).value));
+                    const cubicD = Number(eval(document.getElementById(`${this.id}cubicD`).value));
+                    
+                    for(let x=factorMinX; x<factorMaxX; x=x+factorDotX){
+                        const y = (cubicA * (x**3)) + (cubicB * (x**2)) + (cubicC * x) + cubicD;
+                        this.printDot(x,y);
+                    }
+                }
+                cubicPrint();
+                document.getElementById(`${this.id}btnCubic`).addEventListener(
+                    'click',
+                    (e) => {
+                        cubicPrint();
+                    }
+                )
+
+                // r**2 = (x-a)**2 + (y-b)**2;
+                const circlePrint = () => {
+                    const circleR = Number(eval(document.getElementById(`${this.id}circleR`).value));
+                    const circleA = Number(eval(document.getElementById(`${this.id}circleA`).value));
+                    const circleB = Number(eval(document.getElementById(`${this.id}circleB`).value));
+                    
+                    for(let i=0; i<360; i++){
+                        let cosThe = i * Math.PI / 180;
+                        let sinThe = i * Math.PI / 180;
+                        this.printDot(Math.cos(cosThe) * circleR + circleA,Math.sin(sinThe) * circleR + circleB);
+                    }
+                }
+                circlePrint();
+                document.getElementById(`${this.id}btnCircle`).addEventListener(
+                    'click',
+                    (e) => {
+                        circlePrint();
+                    }
+                );
+            }
+            control(targetDom){
+                this.initCal(targetDom)
+                this.printCross(this.canvasWidth, this.canvasHeight);
+                this.printScaleFactor();
+                this.canvasZoomInOut();
+                this.canvasMove();
+                this.equationOperations();
+            }
+        }
+        // const calCanvas = new EquaGraph('calCanvas', document.getElementById('canvas2'));
+        // calCanvas.control();
+        
+        
+        
+        // 동적으로 객체 생성
+        class Body {
+            constructor(id){
+                this.id = id;
+            }
+            CalculatorObjCreation(){
+                let i = 1;
+                document.getElementById('openCalculator').addEventListener(
+                    'click',
+                    (e)=>{
+                        let event = e ? e : event;
+                        const divElement = document.createElement("div");
+                        document.getElementById('calculatorArea').appendChild(divElement);
+                        divElement.setAttribute('id',`calculatorAreacalculator${i}`);
+                        
+                        let tempCalculator = `calculator${i}`
+                        tempCalculator = new Calculator(`calculator${i}`);
+                        tempCalculator.control( document.getElementById(`calculatorAreacalculator${i}`));
+
+                        const divElement2 = document.createElement("div");
+                        document.getElementById(`calculatorAreacalculator${i}`).appendChild(divElement2);
+                        divElement2.setAttribute('id',`equaGraphAreagraph${i}`);
+                        
+                        let tempGraph = `graph${i}`
+                        tempGraph = new EquaGraph(`graph${i}`);
+                        tempGraph.control(document.getElementById(`equaGraphAreagraph${i}`));
+
+                        i++;
+                    }
+                )
+            }
+        }
+
+        const main = (() => {
+            const run = new Body('run');
+            run.CalculatorObjCreation();
+        })();
+    </script>
+</body>
+</html>
